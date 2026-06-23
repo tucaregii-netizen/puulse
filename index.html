@@ -1,6 +1,24 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1311144157752806');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1311144157752806&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pulse — Infraestrutura de Receita</title>
@@ -968,13 +986,14 @@ footer {
   .stat-row { flex-direction: column; gap: 32px; }
   .footer-inner { flex-direction: column; gap: 20px; text-align: center; }
 }
+@keyframes fade-in{from{opacity:0}to{opacity:1}}
 </style>
 </head>
 <body>
 
 <!-- NAV -->
 <nav>
-  <a class="nav-logo" href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse">
+  <a class="nav-logo" onclick="if(typeof fbq!=='undefined')fbq('track','Lead');" href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse">
     <svg viewBox="0 0 100 64" fill="none" stroke="#C9252D" stroke-width="9" stroke-linejoin="round" stroke-linecap="round">
       <path d="M5 32 L30 6 L82 6 L60 28 L95 28 L70 58 L18 58 L40 36 L5 36 Z"/>
     </svg>
@@ -986,7 +1005,7 @@ footer {
     <li><a href="#features">Diferenciais</a></li>
     <li><a href="#markets">Mercados</a></li>
   </ul>
-  <a href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse" class="nav-cta">Agendar demonstração</a>
+  <a onclick="if(typeof fbq!=='undefined')fbq('track','Lead');" href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse" class="nav-cta">Agendar demonstração</a>
 </nav>
 
 <!-- HERO -->
@@ -1006,7 +1025,7 @@ footer {
   </p>
 
   <div class="hero-actions">
-    <a href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse" class="btn-primary">Agendar demonstração</a>
+    <a onclick="if(typeof fbq!=='undefined')fbq('track','Lead');" href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse" class="btn-primary">Agendar demonstração</a>
     <a href="#flow" class="btn-secondary">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
       Ver como funciona
@@ -1432,6 +1451,119 @@ footer {
   </div>
 </section>
 
+
+<!-- CONSÓRCIO -->
+<section id="consorcio" style="padding:120px 48px;background:var(--bg-2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">CONSÓRCIO</div>
+    <h2 class="section-title reveal">Puulse foi construída<br>para o <em style="font-style:italic;color:var(--red)">consórcio</em>.</h2>
+    <p class="section-body reveal" style="margin-bottom:48px">Nenhum segmento sofre mais com lead decay do que o consórcio. Alto volume, ciclo longo, múltiplos consultores — e o lead esfria em minutos. Puulse resolve isso com infraestrutura, não com esforço.</p>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:48px;align-items:center;margin-bottom:56px">
+      <div class="reveal" style="display:flex;flex-direction:column;gap:14px">
+        <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:all .3s" onmouseover="this.style.borderColor='rgba(201,37,45,.25)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(201,37,45,.1);border:1px solid rgba(201,37,45,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9252D" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div>
+            <strong style="display:block;font-size:14px;margin-bottom:3px">Lead gerado às 22h? Atendido às 22h.</strong>
+            <span style="font-size:12px;color:var(--text-3)">O interessado pesquisa consórcio fora do horário comercial. A Puulse atende na hora — sem consultor acordado.</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:all .3s" onmouseover="this.style.borderColor='rgba(201,37,45,.25)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(201,37,45,.1);border:1px solid rgba(201,37,45,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9252D" stroke-width="2"><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div>
+            <strong style="display:block;font-size:14px;margin-bottom:3px">Qualificação antes do consultor</strong>
+            <span style="font-size:12px;color:var(--text-3)">A IA identifica carta contemplada, valor do crédito e perfil de compra. O consultor abre a conversa já sabendo com quem está falando.</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:all .3s" onmouseover="this.style.borderColor='rgba(201,37,45,.25)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(201,37,45,.1);border:1px solid rgba(201,37,45,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9252D" stroke-width="2"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><polyline points="21 3 21 8 16 8"/></svg>
+          </div>
+          <div>
+            <strong style="display:block;font-size:14px;margin-bottom:3px">Frios reativados automaticamente</strong>
+            <span style="font-size:12px;color:var(--text-3)">O ciclo do consórcio é longo. Leads que não compraram hoje são reativados no momento certo — sem depender da memória do consultor.</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:16px;padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;transition:all .3s" onmouseover="this.style.borderColor='rgba(201,37,45,.25)'" onmouseout="this.style.borderColor='rgba(255,255,255,.07)'">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(201,37,45,.1);border:1px solid rgba(201,37,45,.18);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9252D" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+          </div>
+          <div>
+            <strong style="display:block;font-size:14px;margin-bottom:3px">Multi-unidade nativo</strong>
+            <span style="font-size:12px;color:var(--text-3)">Redes com múltiplos escritórios têm visibilidade consolidada. Cada unidade opera de forma independente — gestão enxerga tudo.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <div style="background:var(--bg-3);border:1px solid var(--border-2);border-radius:18px;padding:32px;position:relative;overflow:hidden">
+          <div style="position:absolute;width:400px;height:400px;background:radial-gradient(circle,rgba(201,37,45,0.08) 0%,transparent 65%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none"></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:20px;position:relative;z-index:1">OPERAÇÃO CONSÓRCIO · ANTES E DEPOIS</div>
+          <div style="display:flex;flex-direction:column;gap:10px;position:relative;z-index:1">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="padding:14px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:10px">
+                <div style="font-size:10px;color:#EF4444;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;margin-bottom:6px">ANTES</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:3px">4h12m</div>
+                <div style="font-size:11px;color:var(--text-3)">tempo de resposta</div>
+              </div>
+              <div style="padding:14px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18);border-radius:10px">
+                <div style="font-size:10px;color:#22C55E;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;margin-bottom:6px">DEPOIS</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:3px">23 segundos</div>
+                <div style="font-size:11px;color:var(--text-3)">tempo de resposta</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="padding:14px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:10px">
+                <div style="font-size:10px;color:#EF4444;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;margin-bottom:6px">ANTES</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:3px">Leads perdidos</div>
+                <div style="font-size:11px;color:var(--text-3)">sem recuperação</div>
+              </div>
+              <div style="padding:14px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18);border-radius:10px">
+                <div style="font-size:10px;color:#22C55E;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;margin-bottom:6px">DEPOIS</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:3px">Reativação auto</div>
+                <div style="font-size:11px;color:var(--text-3)">frios recuperados</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div style="padding:14px;background:rgba(239,68,68,.07);border:1px solid rgba(239,68,68,.18);border-radius:10px">
+                <div style="font-size:10px;color:#EF4444;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;margin-bottom:6px">ANTES</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:3px">CRM manual</div>
+                <div style="font-size:11px;color:var(--text-3)">desatualizado</div>
+              </div>
+              <div style="padding:14px;background:rgba(34,197,94,.07);border:1px solid rgba(34,197,94,.18);border-radius:10px">
+                <div style="font-size:10px;color:#22C55E;font-family:'JetBrains Mono',monospace;letter-spacing:.1em;margin-bottom:6px">DEPOIS</div>
+                <div style="font-size:13px;font-weight:600;margin-bottom:3px">Pipeline íntegro</div>
+                <div style="font-size:11px;color:var(--text-3)">atualizado em tempo real</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:20px;padding:14px 16px;background:var(--red-dim);border:1px solid rgba(201,37,45,.18);border-radius:10px;font-size:12px;color:var(--text-2);font-family:'JetBrains Mono',monospace;position:relative;z-index:1">
+            Operações de consórcio com Puulse convertem <strong style="color:var(--red)">4x mais</strong> com o mesmo investimento em tráfego.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal" style="display:flex;align-items:center;justify-content:center;gap:16px;padding:40px;background:linear-gradient(135deg,rgba(201,37,45,.07),rgba(201,37,45,.01));border:1px solid rgba(201,37,45,.2);border-radius:20px">
+      <div style="flex:1;max-width:480px">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--red);letter-spacing:.15em;text-transform:uppercase;margin-bottom:10px">Proposta para Consórcio</div>
+        <div style="font-family:'DM Serif Display',serif;font-size:26px;line-height:1.1;margin-bottom:8px">Veja como Puulse<br>funciona na sua operação.</div>
+        <div style="font-size:14px;color:var(--text-3)">Proposta completa com planos, preços e implementação — preparada para operações de consórcio.</div>
+      </div>
+      <button onclick="abrirProposta()" style="flex-shrink:0;padding:16px 32px;background:var(--red);color:white;border:none;border-radius:12px;font-family:'Outfit',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:10px" onmouseover="this.style.background='#A8202E';this.style.transform='translateY(-2px)'" onmouseout="this.style.background='#C9252D';this.style.transform='translateY(0)'">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Visualizar Proposta
+      </button>
+    </div>
+  </div>
+</section>
+
+
+
 <!-- CTA -->
 <section class="cta-section" id="cta">
   <div class="section-inner" style="position:relative;z-index:1">
@@ -1439,7 +1571,7 @@ footer {
     <h2 class="section-title reveal" style="text-align:center;max-width:680px;margin:0 auto 20px">Transforme sua operação<br>em <em style="font-style:italic;color:var(--red)">infraestrutura de receita</em>.</h2>
     <p class="section-body reveal" style="text-align:center;margin:0 auto 48px">Uma demonstração de 30 minutos. Mostramos o sistema operando com dados reais da sua vertical.</p>
     <div style="display:flex;gap:14px;justify-content:center" class="reveal">
-      <a href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse" class="btn-primary" style="font-size:16px;padding:16px 32px">Agendar demonstração estratégica</a>
+      <a onclick="if(typeof fbq!=='undefined')fbq('track','Lead');" href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse" class="btn-primary" style="font-size:16px;padding:16px 32px">Agendar demonstração estratégica</a>
     </div>
   </div>
 </section>
@@ -1452,26 +1584,19 @@ footer {
       <span class="footer-copy">© 2026 puulse · Infraestrutura de Receita</span>
     </div>
     <div class="footer-links">
-      <a href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse">Plataforma</a>
-      <a href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse">Privacidade</a>
-      <a href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse">Contato</a>
+      <a onclick="if(typeof fbq!=='undefined')fbq('track','Lead');" href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse">Plataforma</a>
+      <a onclick="if(typeof fbq!=='undefined')fbq('track','Lead');" href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse">Privacidade</a>
+      <a onclick="if(typeof fbq!=='undefined')fbq('track','Lead');" href="https://wa.me/554791210714?text=Olá%2C%20gostaria%20de%20agendar%20uma%20demonstração%20da%20Puulse">Contato</a>
     </div>
   </div>
 </footer>
 
 <script>
-// Scroll reveal
 const observer = new IntersectionObserver((entries) => {
-  entries.forEach(el => {
-    if (el.isIntersecting) {
-      el.target.classList.add('visible');
-    }
-  });
+  entries.forEach(el => { if (el.isIntersecting) el.target.classList.add('visible'); });
 }, { threshold: 0.12 });
-
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-// Counter animation
 function animateValue(el, start, end, duration, suffix) {
   let startTime = null;
   const step = (timestamp) => {
@@ -1483,8 +1608,6 @@ function animateValue(el, start, end, duration, suffix) {
   };
   requestAnimationFrame(step);
 }
-
-// Animate stats when visible
 const statsObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -1495,25 +1618,43 @@ const statsObserver = new IntersectionObserver((entries) => {
         {el: nums[2], end: 4, suffix: 'x'},
         {el: nums[3], end: 0, suffix: 'h'}
       ];
-      data.forEach(d => {
-        if (d.el) animateValue(d.el, 0, d.end, 1400, d.suffix);
-      });
+      data.forEach(d => { if (d.el) animateValue(d.el, 0, d.end, 1400, d.suffix); });
       statsObserver.unobserve(entry.target);
     }
   });
 }, { threshold: 0.5 });
-
 const statRow = document.querySelector('.stat-row');
 if (statRow) statsObserver.observe(statRow);
+</script>
 
-// Live signal ticker
-const signals = [
-  {name: 'Lead capturado', val: '14:03:00', type: 'live'},
-  {name: 'IA qualificou', val: '14:03:11', type: 'live'},
-  {name: 'Distribuído', val: '14:03:14', type: 'live'},
-  {name: 'Em conversa', val: '14:04:02', type: 'warm'},
-  {name: 'Follow-up #1', val: '14:34:00', type: 'cold'},
-];
+<!-- MODAL PROPOSTA -->
+<div id="modalProposta" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,.88);backdrop-filter:blur(10px)">
+  <div style="width:100%;height:100%;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:rgba(8,10,15,.96);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg width="22" height="14" viewBox="0 0 100 64" fill="none" stroke="#C9252D" stroke-width="9" stroke-linejoin="round" stroke-linecap="round"><path d="M5 32 L30 6 L82 6 L60 28 L95 28 L70 58 L18 58 L40 36 L5 36 Z"/></svg>
+        <span style="font-family:Outfit,sans-serif;font-weight:700;font-size:14px;letter-spacing:-.03em;color:#F0F2F5">puulse</span>
+        <span style="font-size:11px;color:rgba(255,255,255,.3);margin-left:4px">&middot; Proposta Comercial &middot; Consórcio</span>
+      </div>
+      <button onclick="fecharProposta()" style="width:34px;height:34px;border-radius:8px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#F0F2F5;cursor:pointer;display:flex;align-items:center;justify-content:center">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <iframe id="iframeProposta" style="flex:1;border:none;width:100%;background:#080A0F"></iframe>
+  </div>
+</div>
+<script>
+function abrirProposta(){
+  document.getElementById('modalProposta').style.display='block';
+  document.body.style.overflow='hidden';
+  var f=document.getElementById('iframeProposta');
+  if(!f.src||f.src==='about:blank')f.src='proposta.html';
+}
+function fecharProposta(){
+  document.getElementById('modalProposta').style.display='none';
+  document.body.style.overflow='';
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')fecharProposta();});
 </script>
 </body>
 </html>

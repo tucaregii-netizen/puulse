@@ -1656,5 +1656,16 @@ function fecharProposta(){
 }
 document.addEventListener('keydown',function(e){if(e.key==='Escape')fecharProposta();});
 </script>
+<script>
+document.addEventListener('click', function(e) {
+  const link = e.target.closest('a[href*="wa.me"]');
+  if (link) {
+    fbq('trackCustom', 'ClickWhatsApp', {
+      content_name: 'Botão WhatsApp',
+      page: window.location.pathname
+    });
+  }
+});
+</script>
 </body>
 </html>

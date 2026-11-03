@@ -138,7 +138,7 @@ textarea.in{min-height:140px;resize:vertical;line-height:1.55}
 <body>
 <div class="login" id="login"><div class="lbox">
   <img alt="Puulse" src="LOGOSRC"><h2>Painel de onboarding</h2><p>Acesso da direção Ademicon</p>
-  <input class="in" id="lu" type="email" placeholder="E-mail" autocomplete="username"><input class="in" id="lp" type="password" placeholder="Senha" autocomplete="current-password">
+  <input class="in" id="lu" type="text" placeholder="Usuário (ex.: ricardo)" autocomplete="username" autocapitalize="none"><input class="in" id="lp" type="password" placeholder="Senha" autocomplete="current-password">
   <button class="pillbtn metal" id="lb">Entrar</button><div class="lerr" id="le"></div>
 </div></div>
 <div class="toast" id="toast"></div>
@@ -163,7 +163,9 @@ textarea.in{min-height:140px;resize:vertical;line-height:1.55}
 <div class="filters">
   <div class="seg" id="fOffice"><button class="on">Todos</button><button>Pomerode</button><button>Camboriú</button><button>Jaraguá</button></div>
   <div class="seg" id="fTeam"><button class="on">Todos os times</button><button>Bruno Martini</button><button>André</button><button>Cerruti</button></div>
+  <div class="seg" id="fRod"><button class="on">Todas as rodadas</button><button>1ª rodada</button><button>2ª rodada</button><button>3ª rodada</button></div>
   <input class="search" id="q" placeholder="Buscar consultor">
+  <button class="pillbtn" id="exp">Exportar pro Excel</button>
 </div>
 
 <div class="kpis" id="kpis"></div>
@@ -172,7 +174,7 @@ textarea.in{min-height:140px;resize:vertical;line-height:1.55}
   <div class="card">
     <h3>Consultores</h3>
     <div class="sub">Clique em um consultor para ver as respostas e a análise da IA</div>
-    <table class="tbl"><thead><tr><th>Consultor</th><th class="hm">Escritório</th><th class="hm">Time</th><th class="hm">Tempo</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table>
+    <table class="tbl"><thead><tr><th>Consultor</th><th class="hm">Escritório</th><th class="hm">Time</th><th class="hm">Tempo</th><th>Rodada</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table>
   </div>
   <div class="side">
     <div class="card">
@@ -214,6 +216,10 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&g
 const ini=n=>String(n||"?").trim().split(/\s+/).map(x=>x[0]).slice(0,2).join("").toUpperCase();
 const R=c=>c.respostas||{};
 const arr=v=>Array.isArray(v)?v:(v?[v]:[]);
+const ONDAS=["1ª rodada","2ª rodada","3ª rodada","Ainda não"];
+const valorLogin=c=>R(c).cargo==="Dono de loja"?0:(R(c).tempo_ademicon==="Menos de 6 meses"?100:250);
+const brl=v=>v?"R$ "+v.toLocaleString("pt-BR"):"Isento";
+let fR="Todas as rodadas";
 const tm=c=>(c.time||R(c).time||"").replace(/^Time /,"");
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),2200)}
 const SK="puulse_painel_sessao";
@@ -234,11 +240,11 @@ async function api(p,body){
  throw new Error("rota")}
 function showLogin(){document.getElementById("login").classList.remove("off")}
 document.getElementById("lb").onclick=async()=>{const le=document.getElementById("le");le.textContent="";
- try{await auth({email:document.getElementById("lu").value.trim(),password:document.getElementById("lp").value},"password");await load()}catch(e){if(e.message!=="login")le.textContent=e.message==="Invalid login credentials"?"E-mail ou senha incorretos.":e.message}};
+ try{await auth({email:(v=>v.includes("@")?v:v+"@puulse.pro")(document.getElementById("lu").value.trim().toLowerCase()),password:document.getElementById("lp").value},"password");await load()}catch(e){if(e.message!=="login")le.textContent=e.message==="Invalid login credentials"?"Usuário ou senha incorretos.":e.message}};
 document.getElementById("lp").onkeydown=e=>{if(e.key==="Enter")document.getElementById("lb").click()};
 document.getElementById("sair").onclick=()=>{saveS(null);location.reload()};
 async function load(){const j=await api("consultores.php");C=j.consultores;TOTAL=j.total_esperado;ME=j.usuario;document.getElementById("me").textContent=ME.nome;document.getElementById("login").classList.add("off");render();if(cur){const n=C.find(c=>c.id==cur.id);if(n){cur=n;drawBody()}}}
-function list(){return C.filter(c=>(fO==="Todos"||c.unidade===fO)&&(fT==="Todos os times"||tm(c)===fT)&&String(c.nome).toLowerCase().includes(fQ.toLowerCase()))}
+function list(){return C.filter(c=>(fR==="Todas as rodadas"||c.onda===fR)&&(fO==="Todos"||c.unidade===fO)&&(fT==="Todos os times"||tm(c)===fT)&&String(c.nome).toLowerCase().includes(fQ.toLowerCase()))}
 function seg(id,cb){document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.remove("on"));b.classList.add("on");cb(b.textContent,b)})}
 function bars(el,key,L){const m={};L.forEach(c=>arr(R(c)[key]).forEach(v=>m[v]=(m[v]||0)+1));const s=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5);const mx=s.length?s[0][1]:1;
  document.getElementById(el).innerHTML=s.map(([k,v])=>`<div class="b"><div><span>${esc(k)}</span><span>${v}</span></div><div class="track"><i style="width:${v/mx*100}%"></i></div></div>`).join("")||'<div class="sub">Sem dados ainda</div>'}
@@ -246,8 +252,8 @@ function render(){
  const L=list(),all=fO==="Todos"&&fT==="Todos os times"&&!fQ;
  const k=(l,v,s,p)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div>${p!=null?`<div class="track"><i style="width:${Math.min(100,p)}%"></i></div>`:""}</div>`;
  const an=L.filter(c=>c.analise).length,av=L.filter(c=>c.status==="avaliado").length,pend=L.filter(c=>!c.analise).length,li=L.filter(c=>R(c).lideranca==="Sim, quero muito").length;
- document.getElementById("kpis").innerHTML=k("Cadastros recebidos",`${L.length}${all?`<small> / ${TOTAL}</small>`:""}`,"consultores que já responderam",all?L.length/TOTAL*100:null)+k("Analisados pela IA",an,"avaliação prévia pronta",L.length?an/L.length*100:0)+k("Avaliados pela direção",av,"com feedback dado",L.length?av/L.length*100:0)+k("Aguardando IA",pend,"análise ainda não gerada")+k("Querem liderar",li,"potenciais líderes em formação");
- document.getElementById("rows").innerHTML=L.length?L.map(c=>{const s=ST[c.status]||ST.novo;return `<tr class="r" data-id="${c.id}"><td><div class="who"><div class="av">${esc(ini(c.nome))}</div><div><b>${esc(c.nome)}</b><small>${esc(c.analise?.perfil||arr(R(c).consorcio_preferido).join(" · "))}</small></div></div></td><td class="hm">${esc(c.unidade)}</td><td class="hm">${esc(tm(c))}</td><td class="hm mono">${esc(R(c).tempo_ademicon)}</td><td><span class="tag ${s[1]}">${s[0]}</span></td></tr>`}).join(""):'<tr><td colspan="5"><div class="empty">Nenhum cadastro nesse recorte ainda.</div></td></tr>';
+ document.getElementById("kpis").innerHTML=k("Cadastros recebidos",`${L.length}${all?`<small> / ${TOTAL}</small>`:""}`,"consultores que já responderam",all?L.length/TOTAL*100:null)+k("Analisados pela IA",an,"avaliação prévia pronta",L.length?an/L.length*100:0)+k("Avaliados pela direção",av,"com feedback dado",L.length?av/L.length*100:0)+k("Aguardando IA",pend,"análise ainda não gerada")+k("1ª rodada",`${L.filter(c=>c.onda==="1ª rodada").length}`,`${brl(L.filter(c=>c.onda==="1ª rodada").reduce((s,c)=>s+valorLogin(c),0))} por mês`);
+ document.getElementById("rows").innerHTML=L.length?L.map(c=>{const s=ST[c.status]||ST.novo;return `<tr class="r" data-id="${c.id}"><td><div class="who"><div class="av">${esc(ini(c.nome))}</div><div><b>${esc(c.nome)}</b><small>${esc(c.analise?.perfil||arr(R(c).consorcio_preferido).join(" · "))}</small></div></div></td><td class="hm">${esc(c.unidade)}</td><td class="hm">${esc(tm(c))}</td><td class="hm mono">${esc(R(c).tempo_ademicon)}</td><td>${c.onda&&c.onda!=="Ainda não"?`<span class="tag t-lider">${esc(c.onda)} · ${brl(valorLogin(c))}</span>`:`<span class="tag t-wait">Não definida</span>`}</td><td><span class="tag ${s[1]}">${s[0]}</span></td></tr>`}).join(""):'<tr><td colspan="6"><div class="empty">Nenhum cadastro nesse recorte ainda.</div></td></tr>';
  document.querySelectorAll("tr.r").forEach(r=>r.onclick=()=>open(C.find(c=>c.id==r.dataset.id)));
  bars("bars","quer_evoluir",L);bars("bars2","consorcio_preferido",L);
  if(!L.length){document.getElementById("read").innerHTML="<p>Assim que os consultores responderem, a leitura do escritório aparece aqui.</p>";return}
@@ -284,17 +290,24 @@ function drawBody(){const c=cur,db=document.getElementById("db"),a=c.analise;
   db.innerHTML=`<div class="qa">${L.map(([l,k])=>`<div>${l}</div><div>${esc(arr(r[k]).join(", ")||"—")}</div>`).join("")}</div><div class="fbmeta">Enviado em ${esc(new Date(c.enviado_em).toLocaleString("pt-BR"))}</div>`;
  }else{
   const ts=["Bruno Martini","André","Cerruti"],sel=c.time_definido||(a&&a.time_sugerido)||tm(c);
-  db.innerHTML=`<div class="sec"><h4>Seu feedback sobre ${esc(String(c.nome).split(" ")[0])}</h4>
+  db.innerHTML=`<div class="sec"><h4>Liberação do login</h4><div class="seg" id="fbOnda">${ONDAS.map(o=>`<button class="${(c.onda||"")===o?"on":""}">${o}</button>`).join("")}</div><div class="fbmeta">Valor do login: <b style="color:var(--ink)">${brl(valorLogin(c))}</b> por mês, pelo tempo de Ademicon. Salva na hora.</div></div>
+   <div class="sec"><h4>Seu feedback sobre ${esc(String(c.nome).split(" ")[0])}</h4>
    <textarea class="in" id="fbTxt" placeholder="O que você enxerga nesse consultor, onde concorda ou discorda da IA, e como quer direcionar.">${esc(c.feedback_direcao||"")}</textarea></div>
    <div class="sec"><h4>Time definido</h4><div class="seg" id="fbTime">${ts.map(t=>`<button class="${t===sel?"on":""}">${t}</button>`).join("")}</div></div>
    <div class="sec"><h4>Decisão</h4><div class="seg" id="fbDec"><button class="${c.decisao!=="ajustar"?"on":""}" data-v="aprovado">Aprovar perfil</button><button class="${c.decisao==="ajustar"?"on":""}" data-v="ajustar">Precisa de ajuste</button></div></div>
    <button class="pillbtn metal" id="fbSave" style="width:100%;justify-content:center;padding:13px">Salvar feedback</button>
    ${c.avaliado_por?`<div class="fbmeta">Último feedback por ${esc(c.avaliado_por)} em ${esc(new Date(c.avaliado_em).toLocaleString("pt-BR"))}</div>`:""}`;
   seg("fbTime",()=>{});seg("fbDec",()=>{});
+  seg("fbOnda",async v=>{try{await req(`/rest/v1/consultores?id=eq.${encodeURIComponent(c.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({onda:v})});c.onda=v;render();toast("Rodada salva: "+v)}catch(e){if(e.message!=="login")toast(e.message)}});
   document.getElementById("fbSave").onclick=async()=>{const b=document.getElementById("fbSave");b.disabled=true;
    try{await api("feedback.php",{id:c.id,feedback:document.getElementById("fbTxt").value,time_definido:document.querySelector("#fbTime .on")?.textContent||"",decisao:document.querySelector("#fbDec .on")?.dataset.v||"aprovado"});toast("Feedback salvo");await load();setTab("fb")}catch(e){if(e.message!=="login")toast(e.message)}b.disabled=false};
  }}
-seg("fOffice",v=>{fO=v;render()});seg("fTeam",v=>{fT=v;render()});
+seg("fOffice",v=>{fO=v;render()});seg("fRod",v=>{fR=v;render()});
+document.getElementById("exp").onclick=()=>{const L=list();const H=["Nome","Escritório","Time","Função","Tempo de Ademicon","WhatsApp","E-mail","Rodada","Valor mensal","Status","Time definido","Feedback da direção"];
+ const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
+ const rows=L.map(c=>[c.nome,c.unidade,tm(c),R(c).cargo,R(c).tempo_ademicon,R(c).whatsapp,R(c).email,c.onda||"",c.onda&&c.onda!=="Ainda não"?valorLogin(c):"",(ST[c.status]||ST.novo)[0],c.time_definido||"",c.feedback_direcao||""].map(q).join(";"));
+ const blob=new Blob(["\ufeff"+[H.map(q).join(";"),...rows].join("\r\n")],{type:"text/csv;charset=utf-8"});
+ const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="consultores_puulse.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};seg("fTeam",v=>{fT=v;render()});
 document.getElementById("q").oninput=e=>{fQ=e.target.value;render()};
 if(S)load().catch(()=>{});
 </script>

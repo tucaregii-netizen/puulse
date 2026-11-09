@@ -162,7 +162,7 @@ textarea.in{min-height:140px;resize:vertical;line-height:1.55}
 
 <div class="filters">
   <div class="seg" id="fOffice"><button class="on">Todos</button><button>Pomerode</button><button>Camboriú</button><button>Jaraguá</button></div>
-  <div class="seg" id="fTeam"><button class="on">Todos os times</button><button>Bruno Martini</button><button>André</button><button>Cerruti</button></div>
+  <div class="seg" id="fTeam"><button class="on">Todos os times</button><button>Bruno Martini</button><button>André</button><button>Cerruti</button><button>Ricardo/Thiago Escritórios</button><button>Sávio/Jaraguá do Sul</button></div>
   <div class="seg" id="fRod"><button class="on">Todas as rodadas</button><button>1ª rodada</button><button>2ª rodada</button><button>3ª rodada</button></div>
   <input class="search" id="q" placeholder="Buscar consultor">
   <button class="pillbtn" id="exp">Exportar pro Excel</button>
@@ -289,7 +289,7 @@ function drawBody(){const c=cur,db=document.getElementById("db"),a=c.analise;
   const r=R(c),L=[["Escritório","unidade"],["Nome","nome"],["Como gosta de ser chamado","apelido"],["Nascimento","nascimento"],["Cidade","cidade"],["WhatsApp","whatsapp"],["E-mail","email"],["Instagram","instagram"],["Time","time"],["Líder direto","lider"],["Função","cargo"],["Tempo de Ademicon","tempo_ademicon"],["Tempo em vendas","tempo_vendas"],["Consórcio preferido","consorcio_preferido"],["O que atrai","o_que_atrai"],["Canal preferido","canal_preferido"],["Ponto forte","ponto_forte"],["Quer evoluir","quer_evoluir"],["Organização com leads","autoavaliacao"],["Formação","escolaridade"],["Curso","curso"],["Ramo anterior","ramo_anterior"],["Atividade paralela","atividade_paralela"],["Cor favorita","cor_favorita"],["Comida preferida","comida"],["Tempo livre","hobby"],["Leitura","leitura"],["Livro","livro"],["Escrita","escrita"],["Rende mais","periodo"],["Estilo de trabalho","estilo_trabalho"],["Feedback","feedback"],["Motivação","motivacao"],["Meta 12 meses","meta_12m"],["Liderança","lideranca"],["Como a gestão pode ajudar","apoio"]];
   db.innerHTML=`<div class="qa">${L.map(([l,k])=>`<div>${l}</div><div>${esc(arr(r[k]).join(", ")||"—")}</div>`).join("")}</div><div class="fbmeta">Enviado em ${esc(new Date(c.enviado_em).toLocaleString("pt-BR"))}</div>`;
  }else{
-  const ts=["Bruno Martini","André","Cerruti"],sel=c.time_definido||(a&&a.time_sugerido)||tm(c);
+  const ts=["Bruno Martini","André","Cerruti","Ricardo/Thiago Escritórios","Sávio/Jaraguá do Sul"],sel=c.time_definido||(a&&a.time_sugerido)||tm(c);
   db.innerHTML=`<div class="sec"><h4>Liberação do login</h4><div class="seg" id="fbOnda">${ONDAS.map(o=>`<button class="${(c.onda||"")===o?"on":""}">${o}</button>`).join("")}</div><div class="fbmeta">Valor do login: <b style="color:var(--ink)">${brl(valorLogin(c))}</b> por mês, pelo tempo de Ademicon. Salva na hora.</div></div>
    <div class="sec"><h4>Seu feedback sobre ${esc(String(c.nome).split(" ")[0])}</h4>
    <textarea class="in" id="fbTxt" placeholder="O que você enxerga nesse consultor, onde concorda ou discorda da IA, e como quer direcionar.">${esc(c.feedback_direcao||"")}</textarea></div>

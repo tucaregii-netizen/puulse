@@ -257,7 +257,7 @@ const SUPABASE_URL="https://jixsqkhwbxpkxrccxpjf.supabase.co";
 const SUPABASE_ANON_KEY="sb_publishable_waWqGLIlXMEQvBOL6bdTxA_arUL_M00";
 const TOTAL_ESPERADO=35;
 let C=[],TOTAL=TOTAL_ESPERADO,ME=null,S=null;
-const ST={avaliado:["Avaliado pela direção","t-ok"],analisado:["Analisado pela IA","t-ia"],novo:["Aguardando IA","t-wait"]};
+const ST={avaliado:["Avaliado pela direção","t-ok"],analisado:["Analisado pela IA","t-ia"],novo:["Cadastro recebido","t-wait"]};
 let fO="Todos",fT="Todos os times",fQ="";
 const esc=s=>String(s??"").replace(/[&<>"]/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
 const ini=n=>String(n||"?").trim().split(/\s+/).map(x=>x[0]).slice(0,2).join("").toUpperCase();
@@ -299,7 +299,7 @@ function render(){
  const L=list(),all=fO==="Todos"&&fT==="Todos os times"&&!fQ;
  const k=(l,v,s,p)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div>${p!=null?`<div class="track"><i style="width:${Math.min(100,p)}%"></i></div>`:""}</div>`;
  const an=L.filter(c=>c.analise).length,av=L.filter(c=>c.status==="avaliado").length,pend=L.filter(c=>!c.analise).length,li=L.filter(c=>R(c).lideranca==="Sim, quero muito").length;
- document.getElementById("kpis").innerHTML=k("Cadastros recebidos",`${L.length}${all?`<small> / ${TOTAL}</small>`:""}`,"consultores que já responderam",all?L.length/TOTAL*100:null)+k("Analisados pela IA",an,"avaliação prévia pronta",L.length?an/L.length*100:0)+k("Avaliados pela direção",av,"com feedback dado",L.length?av/L.length*100:0)+k("Aguardando IA",pend,"análise ainda não gerada")+k("1ª rodada",`${L.filter(c=>c.onda==="1ª rodada").length}`,`${brl(L.filter(c=>c.onda==="1ª rodada").reduce((s,c)=>s+valorLogin(c),0))} por mês`);
+ document.getElementById("kpis").innerHTML=k("Cadastros recebidos",`${L.length}${all?`<small> / ${TOTAL}</small>`:""}`,"consultores que já responderam",all?L.length/TOTAL*100:null)+k("Analisados pela IA",an,"avaliação prévia pronta",L.length?an/L.length*100:0)+k("Avaliados pela direção",av,"com feedback dado",L.length?av/L.length*100:0)+k("Sem análise da IA",pend,"com resumo automático")+k("1ª rodada",`${L.filter(c=>c.onda==="1ª rodada").length}`,`${brl(L.filter(c=>c.onda==="1ª rodada").reduce((s,c)=>s+valorLogin(c),0))} por mês`);
  document.getElementById("rows").innerHTML=L.length?L.map(c=>{const s=ST[c.status]||ST.novo;return `<tr class="r" data-id="${c.id}"><td><div class="who"><div class="av">${esc(ini(c.nome))}</div><div><b>${esc(c.nome)}</b><small>${esc(c.analise?.perfil||arr(R(c).consorcio_preferido).join(" · "))}</small></div></div></td><td class="hm">${esc(c.unidade)}</td><td class="hm">${esc(tm(c))}</td><td class="hm mono">${esc(R(c).tempo_ademicon)}</td><td>${c.onda&&c.onda!=="Ainda não"?`<span class="tag t-lider">${esc(c.onda)} · ${brl(valorLogin(c))}</span>`:`<span class="tag t-wait">Não definida</span>`}</td><td><span class="tag ${s[1]}">${s[0]}</span></td></tr>`}).join(""):'<tr><td colspan="6"><div class="empty">Nenhum cadastro nesse recorte ainda.</div></td></tr>';
  document.querySelectorAll("tr.r").forEach(r=>r.onclick=()=>open(C.find(c=>c.id==r.dataset.id)));
  bars("bars","quer_evoluir",L);bars("bars2","consorcio_preferido",L);
@@ -336,10 +336,36 @@ const comport=a=>{const p=a.perfil_comportamental;if(!p)return"";const it=p.inte
   </div>
   <div class="fbmeta">Leitura comportamental indicativa, feita a partir das respostas do cadastro. Não substitui avaliação feita por psicólogo.</div>
  </div></div>`};
+const lista=v=>{const a=arr(v).filter(Boolean).map(x=>String(x).toLowerCase());return a.length<2?(a[0]||""):a.slice(0,-1).join(", ")+" e "+a[a.length-1]};
+const low=v=>String(v||"").trim().toLowerCase();
+function resumoAuto(c){const r=R(c),nome=(r.apelido&&!/não tenho/i.test(r.apelido)?r.apelido:String(c.nome||"").split(" ")[0])||"Consultor";
+ const p1=[];
+ p1.push(`${esc(nome)} é ${esc(low(r.cargo)||"consultor")} do escritório de ${esc(c.unidade||r.unidade||"")}${tm(c)?`, no Time ${esc(tm(c))}`:""}${r.tempo_ademicon?`, com ${esc(low(r.tempo_ademicon))} de Ademicon`:""}${r.tempo_vendas?(r.tempo_vendas==="Comecei na Ademicon"?" e começou em vendas na própria Ademicon":` e ${esc(low(r.tempo_vendas))} em vendas`):""}${r.ramo_anterior&&!/não tenho/i.test(r.ramo_anterior)?`. Antes atuava em ${esc(low(r.ramo_anterior))}`:""}.`);
+ if(arr(r.consorcio_preferido).length)p1.push(`Gosta mais de vender ${esc(lista(r.consorcio_preferido))}${r.o_que_atrai?` e o que mais atrai na venda é: “${esc(r.o_que_atrai)}”`:""}.`);
+ if(arr(r.ponto_forte).length||arr(r.quer_evoluir).length)p1.push(`Diz ser mais forte em ${esc(lista(r.ponto_forte))||"pontos não informados"}${arr(r.quer_evoluir).length?` e quer evoluir em ${esc(lista(r.quer_evoluir))}`:""}.`);
+ if(r.autoavaliacao)p1.push(`Se dá nota ${esc(r.autoavaliacao)} de 5 na organização com os leads.`);
+ const p2=[];
+ const jeito=[r.canal_preferido&&arr(r.canal_preferido).length?`prefere atender por ${esc(lista(r.canal_preferido)).replace("whatsapp","WhatsApp")}`:"",r.periodo?`rende mais de ${esc(low(r.periodo))}`:"",r.estilo_trabalho?`funciona melhor ${esc(low(r.estilo_trabalho))}`:"",r.feedback?`gosta de feedback ${esc(low(r.feedback))}`:""].filter(Boolean);
+ if(jeito.length)p2.push(`No dia a dia, ${jeito.slice(0,-1).join(", ")}${jeito.length>1?" e ":""}${jeito[jeito.length-1]}.`);
+ if(arr(r.motivacao).length)p2.push(`É motivado por ${esc(lista(r.motivacao))}.`);
+ if(r.meta_12m)p2.push(`Meta para os próximos 12 meses: “${esc(r.meta_12m)}”.`);
+ if(r.lideranca)p2.push(({"Sim, quero muito":"Quer muito liderar um time.","Talvez":"Talvez queira liderar um time no futuro.","Não é meu foco":"Liderar um time não é o foco agora."})[r.lideranca]||`Sobre liderar um time: ${esc(low(r.lideranca))}.`);
+ const pessoal=[r.leitura?`leitura: ${esc(low(r.leitura))}`:"",r.escrita?`escrita: ${esc(low(r.escrita))}`:"",r.hobby?`tempo livre: ${esc(low(r.hobby))}`:"",r.comida?`comida: ${esc(low(r.comida))}`:"",r.cor_favorita?`cor: ${esc(low(r.cor_favorita))}`:""].filter(Boolean);
+ const dest=[];
+ if(r.tempo_ademicon==="Menos de 6 meses")dest.push("Iniciante, com menos de 6 meses de casa: vale acompanhar de perto");
+ if(Number(r.autoavaliacao)<=2&&r.autoavaliacao)dest.push("Se considera pouco organizado com os leads");
+ if(Number(r.autoavaliacao)>=4)dest.push("Se considera organizado com os leads");
+ if(r.lideranca==="Sim, quero muito")dest.push("Quer liderar: candidato a líder em formação");
+ if(r.atividade_paralela&&!/^Não/.test(r.atividade_paralela))dest.push(`Tem atividade paralela (${low(r.atividade_paralela).replace(/^sim,\s*/,"")})`);
+ if(r.apoio)dest.push(`Pede apoio em: “${r.apoio}”`);
+ return `<div class="sec"><div class="ai-badge"><span class="dot" style="background:var(--dim)"></span>Resumo do cadastro · gerado das respostas</div><div class="summary"><p style="margin-bottom:10px">${p1.join(" ")}</p><p>${p2.join(" ")}</p></div></div>
+ ${dest.length?`<div class="sec"><h4>Destaques do cadastro</h4><div class="box">${ul(dest)}</div></div>`:""}
+ ${pessoal.length?`<div class="sec"><h4>Lado pessoal</h4><div class="box"><div class="bt">${pessoal.join(" · ")}</div></div></div>`:""}
+ <div class="fbmeta">${c.analise_erro?"A análise completa da IA ainda não rodou. ":""}Resumo automático montado a partir das respostas, sem avaliação. Quando a IA estiver liberada, clique em <b>Refazer análise da IA</b> pra gerar a avaliação técnica e o perfil comportamental.</div>`}
 const ul=a=>`<ul>${arr(a).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
 function drawBody(){const c=cur,db=document.getElementById("db"),a=c.analise;
  if(tab==="ia"){
-  if(!a){db.innerHTML=`<div class="summary">${c.analise_erro?"A IA não conseguiu analisar esse cadastro ainda ("+esc(c.analise_erro)+").":"A análise desse consultor ainda não foi gerada."} Clique em <b>Refazer análise da IA</b> pra gerar agora.</div>`;return}
+  if(!a){db.innerHTML=resumoAuto(c);return}
   const pdi=arr(a.pdi).map((p,i)=>{const m=String(p).match(/^(M[eê]s \d+)\s*[:.]\s*(.*)$/i);return `<div><span>${esc(m?m[1]:"Mês "+(i+1))}</span><span>${esc(m?m[2]:p)}</span></div>`}).join("");
   db.innerHTML=`<div class="sec"><div class="ai-badge"><span class="dot live"></span>Avaliação prévia do agente${a.perfil?" · "+esc(a.perfil):""}</div><div class="summary">${esc(a.resumo)}</div></div>
   <div class="sec two"><div class="box"><b>Pontos fortes</b>${ul(a.pontos_fortes)}</div><div class="box"><b>Onde evoluir</b>${ul(a.evoluir)}</div></div>

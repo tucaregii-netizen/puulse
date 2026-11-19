@@ -180,6 +180,7 @@ textarea.in{min-height:140px;resize:vertical;line-height:1.55}
 [data-theme="light"] .db [style*="#d4d4d4"]{color:#333!important}
 [data-theme="light"] .db [style*="#e6c45c"]{color:#8a6500!important}
 [data-theme="light"] .lerr{color:#c0262d}
+.fsel{flex:0 0 auto;min-width:180px;max-width:220px;appearance:none;cursor:pointer}
 </style>
 </head>
 <body>
@@ -202,7 +203,7 @@ textarea.in{min-height:140px;resize:vertical;line-height:1.55}
     <div class="st"><div class="n">01</div><b>Cadastro</b><span>Consultor responde o questionário pelo link</span></div>
     <div class="st ai"><div class="n">02 · IA</div><b>Agente avalia</b><span>Especialista em RH lê o perfil completo</span></div>
     <div class="st ai"><div class="n">03 · IA</div><b>Resumo e PDI</b><span>Pontos fortes, a evoluir, plano de 90 dias e time sugerido</span></div>
-    <div class="st"><div class="n">04</div><b>Direção avalia</b><span>Ricardo, Thiago e Pati leem e passam o feedback</span></div>
+    <div class="st"><div class="n">04</div><b>Líderes avaliam</b><span>Líderes e direção leem e passam o feedback de cada um</span></div>
     <div class="st"><div class="n">05</div><b>Sobe pro CRM</b><span>Perfil aprovado orienta o consultor no dia a dia</span></div>
   </div>
 </div>
@@ -211,6 +212,7 @@ textarea.in{min-height:140px;resize:vertical;line-height:1.55}
   <div class="seg" id="fOffice"><button class="on">Todos</button><button>Pomerode</button><button>Camboriú</button><button>Jaraguá</button></div>
   <div class="seg" id="fTeam"><button class="on">Todos os times</button><button>Bruno Martini</button><button>André</button><button>Cerruti</button><button>Ricardo/Thiago Escritórios</button><button>Sávio/Jaraguá do Sul</button></div>
   <div class="seg" id="fRod"><button class="on">Todas as rodadas</button><button>1ª rodada</button><button>2ª rodada</button><button>3ª rodada</button></div>
+  <select class="search fsel" id="fFb"><option value="">Feedback: todos</option><option value="__sem">Sem feedback</option><option value="__com">Com feedback</option></select>
   <input class="search" id="q" placeholder="Buscar consultor">
   <button class="pillbtn" id="exp">Exportar pro Excel</button>
 </div>
@@ -221,9 +223,10 @@ textarea.in{min-height:140px;resize:vertical;line-height:1.55}
   <div class="card">
     <h3>Consultores</h3>
     <div class="sub">Clique em um consultor para ver as respostas e a análise da IA</div>
-    <table class="tbl"><thead><tr><th>Consultor</th><th class="hm">Escritório</th><th class="hm">Time</th><th class="hm">Tempo</th><th>Rodada</th><th>Status</th></tr></thead><tbody id="rows"></tbody></table>
+    <table class="tbl"><thead><tr><th>Consultor</th><th class="hm">Escritório</th><th class="hm">Time</th><th class="hm">Tempo</th><th>Rodada</th><th>Feedback</th></tr></thead><tbody id="rows"></tbody></table>
   </div>
   <div class="side">
+    <div class="card"><h3>Feedbacks por avaliador</h3><div class="sub">Quem já avaliou e quantos</div><div class="bars" id="barsAv"></div></div>
     <div class="card">
       <div class="ai-badge"><span class="dot live"></span>Leitura do agente</div>
       <h3>Visão do escritório</h3>
@@ -266,7 +269,7 @@ const arr=v=>Array.isArray(v)?v:(v?[v]:[]);
 const ONDAS=["1ª rodada","2ª rodada","3ª rodada","Ainda não"];
 const valorLogin=c=>R(c).cargo==="Dono de loja"?0:(R(c).tempo_ademicon==="Menos de 6 meses"?100:250);
 const brl=v=>v?"R$ "+v.toLocaleString("pt-BR"):"Isento";
-let fR="Todas as rodadas";
+let fR="Todas as rodadas",fF="";
 const tm=c=>(c.time||R(c).time||"").replace(/^Time /,"");
 function toast(m){const t=document.getElementById("toast");t.textContent=m;t.classList.add("on");setTimeout(()=>t.classList.remove("on"),2200)}
 const SK="puulse_painel_sessao";
@@ -291,17 +294,21 @@ document.getElementById("lb").onclick=async()=>{const le=document.getElementById
 document.getElementById("lp").onkeydown=e=>{if(e.key==="Enter")document.getElementById("lb").click()};
 document.getElementById("sair").onclick=()=>{saveS(null);location.reload()};
 async function load(){const j=await api("consultores.php");C=j.consultores;TOTAL=j.total_esperado;ME=j.usuario;document.getElementById("me").textContent=ME.nome;document.getElementById("login").classList.add("off");render();if(cur){const n=C.find(c=>c.id==cur.id);if(n){cur=n;drawBody()}}}
-function list(){return C.filter(c=>(fR==="Todas as rodadas"||c.onda===fR)&&(fO==="Todos"||c.unidade===fO)&&(fT==="Todos os times"||tm(c)===fT)&&String(c.nome).toLowerCase().includes(fQ.toLowerCase()))}
+function list(){return C.filter(c=>(!fF||(fF==="__sem"?!c.avaliado_por:fF==="__com"?!!c.avaliado_por:c.avaliado_por===fF))&&(fR==="Todas as rodadas"||c.onda===fR)&&(fO==="Todos"||c.unidade===fO)&&(fT==="Todos os times"||tm(c)===fT)&&String(c.nome).toLowerCase().includes(fQ.toLowerCase()))}
 function seg(id,cb){document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.remove("on"));b.classList.add("on");cb(b.textContent,b)})}
 function bars(el,key,L){const m={};L.forEach(c=>arr(R(c)[key]).forEach(v=>m[v]=(m[v]||0)+1));const s=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5);const mx=s.length?s[0][1]:1;
  document.getElementById(el).innerHTML=s.map(([k,v])=>`<div class="b"><div><span>${esc(k)}</span><span>${v}</span></div><div class="track"><i style="width:${v/mx*100}%"></i></div></div>`).join("")||'<div class="sub">Sem dados ainda</div>'}
 function render(){
  const L=list(),all=fO==="Todos"&&fT==="Todos os times"&&!fQ;
  const k=(l,v,s,p)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div>${p!=null?`<div class="track"><i style="width:${Math.min(100,p)}%"></i></div>`:""}</div>`;
- const an=L.filter(c=>c.analise).length,av=L.filter(c=>c.status==="avaliado").length,pend=L.filter(c=>!c.analise).length,li=L.filter(c=>R(c).lideranca==="Sim, quero muito").length;
- document.getElementById("kpis").innerHTML=k("Cadastros recebidos",`${L.length}${all?`<small> / ${TOTAL}</small>`:""}`,"consultores que já responderam",all?L.length/TOTAL*100:null)+k("Analisados pela IA",an,"avaliação prévia pronta",L.length?an/L.length*100:0)+k("Avaliados pela direção",av,"com feedback dado",L.length?av/L.length*100:0)+k("Sem análise da IA",pend,"com resumo automático")+k("1ª rodada",`${L.filter(c=>c.onda==="1ª rodada").length}`,`${brl(L.filter(c=>c.onda==="1ª rodada").reduce((s,c)=>s+valorLogin(c),0))} por mês`);
- document.getElementById("rows").innerHTML=L.length?L.map(c=>{const s=ST[c.status]||ST.novo;return `<tr class="r" data-id="${c.id}"><td><div class="who"><div class="av">${esc(ini(c.nome))}</div><div><b>${esc(c.nome)}</b><small>${esc(c.analise?.perfil||arr(R(c).consorcio_preferido).join(" · "))}</small></div></div></td><td class="hm">${esc(c.unidade)}</td><td class="hm">${esc(tm(c))}</td><td class="hm mono">${esc(R(c).tempo_ademicon)}</td><td>${c.onda&&c.onda!=="Ainda não"?`<span class="tag t-lider">${esc(c.onda)} · ${brl(valorLogin(c))}</span>`:`<span class="tag t-wait">Não definida</span>`}</td><td><span class="tag ${s[1]}">${s[0]}</span></td></tr>`}).join(""):'<tr><td colspan="6"><div class="empty">Nenhum cadastro nesse recorte ainda.</div></td></tr>';
+ const an=L.filter(c=>c.analise).length,av=L.filter(c=>!!c.avaliado_por).length,pend=L.filter(c=>!c.analise).length,li=L.filter(c=>R(c).lideranca==="Sim, quero muito").length;
+ document.getElementById("kpis").innerHTML=k("Cadastros recebidos",`${L.length}`,"consultores que já responderam",null)+k("Analisados pela IA",an,"avaliação prévia pronta",L.length?an/L.length*100:0)+k("Com feedback",`${av}<small> / ${L.length}</small>`,`${L.length?Math.round(av/L.length*100):0}% avaliados`,L.length?av/L.length*100:0)+k("Sem feedback",L.length-av,"aguardando avaliação")+k("1ª rodada",`${L.filter(c=>c.onda==="1ª rodada").length}`,`${brl(L.filter(c=>c.onda==="1ª rodada").reduce((s,c)=>s+valorLogin(c),0))} por mês`);
+ document.getElementById("rows").innerHTML=L.length?L.map(c=>{const s=ST[c.status]||ST.novo;return `<tr class="r" data-id="${c.id}"><td><div class="who"><div class="av">${esc(ini(c.nome))}</div><div><b>${esc(c.nome)}</b><small>${esc(c.analise?.perfil||arr(R(c).consorcio_preferido).join(" · "))}</small></div></div></td><td class="hm">${esc(c.unidade)}</td><td class="hm">${esc(tm(c))}</td><td class="hm mono">${esc(R(c).tempo_ademicon)}</td><td>${c.onda&&c.onda!=="Ainda não"?`<span class="tag t-lider">${esc(c.onda)} · ${brl(valorLogin(c))}</span>`:`<span class="tag t-wait">Não definida</span>`}</td><td>${c.avaliado_por?`<span class="tag t-ok" title="${esc(new Date(c.avaliado_em).toLocaleString("pt-BR"))}">✓ ${esc(c.avaliado_por)} · ${esc(new Date(c.avaliado_em).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}))}</span>`:`<span class="tag t-wait">Pendente</span>`}</td></tr>`}).join(""):'<tr><td colspan="6"><div class="empty">Nenhum cadastro nesse recorte ainda.</div></td></tr>';
  document.querySelectorAll("tr.r").forEach(r=>r.onclick=()=>open(C.find(c=>c.id==r.dataset.id)));
+ {const m={};L.forEach(c=>{if(c.avaliado_por)m[c.avaliado_por]=(m[c.avaliado_por]||0)+1});const s=Object.entries(m).sort((a,b)=>b[1]-a[1]);const mx=Math.max(1,...s.map(x=>x[1]));
+  document.getElementById("barsAv").innerHTML=(s.map(([k,v])=>`<div class="b"><div><span>${esc(k)}</span><span>${v}</span></div><div class="track"><i style="width:${v/mx*100}%"></i></div></div>`).join("")||'<div class="sub">Nenhum feedback ainda</div>')+`<div class="fbmeta">${L.length-av} sem feedback nesse recorte</div>`;
+  const sel=document.getElementById("fFb"),cur=sel.value,nomes=[...new Set(C.map(c=>c.avaliado_por).filter(Boolean))].sort();
+  sel.innerHTML='<option value="">Feedback: todos</option><option value="__sem">Sem feedback</option><option value="__com">Com feedback</option>'+nomes.map(n=>`<option value="${esc(n)}">Feito por ${esc(n)}</option>`).join("");sel.value=cur;}
  bars("bars","quer_evoluir",L);bars("bars2","consorcio_preferido",L);
  if(!L.length){document.getElementById("read").innerHTML="<p>Assim que os consultores responderem, a leitura do escritório aparece aqui.</p>";return}
  const m={};L.forEach(c=>arr(R(c).quer_evoluir).forEach(v=>m[v]=(m[v]||0)+1));const top=Object.entries(m).sort((a,b)=>b[1]-a[1])[0];
@@ -380,7 +387,7 @@ function drawBody(){const c=cur,db=document.getElementById("db"),a=c.analise;
  }else{
   const ts=["Bruno Martini","André","Cerruti","Ricardo/Thiago Escritórios","Sávio/Jaraguá do Sul"],sel=c.time_definido||(a&&a.time_sugerido)||tm(c);
   db.innerHTML=`<div class="sec"><h4>Liberação do login</h4><div class="seg" id="fbOnda">${ONDAS.map(o=>`<button class="${(c.onda||"")===o?"on":""}">${o}</button>`).join("")}</div><div class="fbmeta">Valor do login: <b style="color:var(--ink)">${brl(valorLogin(c))}</b> por mês, pelo tempo de Ademicon. Salva na hora.</div></div>
-   <div class="sec"><h4>Seu feedback sobre ${esc(String(c.nome).split(" ")[0])}</h4>
+   ${c.avaliado_por&&ME&&c.avaliado_por!==ME.nome?`<div class="sec"><div class="box" style="border-color:rgba(217,164,0,.4)"><b>Feedback já dado por ${esc(c.avaliado_por)}</b><div class="bt">Em ${esc(new Date(c.avaliado_em).toLocaleString("pt-BR"))}. Se você salvar, o seu substitui o dele.</div></div></div>`:""}<div class="sec"><h4>Seu feedback sobre ${esc(String(c.nome).split(" ")[0])}</h4>
    <textarea class="in" id="fbTxt" placeholder="O que você enxerga nesse consultor, onde concorda ou discorda da IA, e como quer direcionar.">${esc(c.feedback_direcao||"")}</textarea></div>
    <div class="sec"><h4>Time definido</h4><div class="seg" id="fbTime">${ts.map(t=>`<button class="${t===sel?"on":""}">${t}</button>`).join("")}</div></div>
    <div class="sec"><h4>Decisão</h4><div class="seg" id="fbDec"><button class="${c.decisao!=="ajustar"?"on":""}" data-v="aprovado">Aprovar perfil</button><button class="${c.decisao==="ajustar"?"on":""}" data-v="ajustar">Precisa de ajuste</button></div></div>
@@ -391,10 +398,10 @@ function drawBody(){const c=cur,db=document.getElementById("db"),a=c.analise;
   document.getElementById("fbSave").onclick=async()=>{const b=document.getElementById("fbSave");b.disabled=true;
    try{await api("feedback.php",{id:c.id,feedback:document.getElementById("fbTxt").value,time_definido:document.querySelector("#fbTime .on")?.textContent||"",decisao:document.querySelector("#fbDec .on")?.dataset.v||"aprovado"});toast("Feedback salvo");await load();setTab("fb")}catch(e){if(e.message!=="login")toast(e.message)}b.disabled=false};
  }}
-seg("fOffice",v=>{fO=v;render()});seg("fRod",v=>{fR=v;render()});
-document.getElementById("exp").onclick=()=>{const L=list();const H=["Nome","Escritório","Time","Função","Tempo de Ademicon","WhatsApp","E-mail","Rodada","Valor mensal","Status","Time definido","Feedback da direção"];
+seg("fOffice",v=>{fO=v;render()});document.getElementById("fFb").onchange=e=>{fF=e.target.value;render()};seg("fRod",v=>{fR=v;render()});
+document.getElementById("exp").onclick=()=>{const L=list();const H=["Nome","Escritório","Time","Função","Tempo de Ademicon","WhatsApp","E-mail","Rodada","Valor mensal","Status","Time definido","Feedback da direção","Feedback feito por","Data do feedback"];
  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
- const rows=L.map(c=>[c.nome,c.unidade,tm(c),R(c).cargo,R(c).tempo_ademicon,R(c).whatsapp,R(c).email,c.onda||"",c.onda&&c.onda!=="Ainda não"?valorLogin(c):"",(ST[c.status]||ST.novo)[0],c.time_definido||"",c.feedback_direcao||""].map(q).join(";"));
+ const rows=L.map(c=>[c.nome,c.unidade,tm(c),R(c).cargo,R(c).tempo_ademicon,R(c).whatsapp,R(c).email,c.onda||"",c.onda&&c.onda!=="Ainda não"?valorLogin(c):"",(ST[c.status]||ST.novo)[0],c.time_definido||"",c.feedback_direcao||"",c.avaliado_por||"",c.avaliado_em?new Date(c.avaliado_em).toLocaleString("pt-BR"):""].map(q).join(";"));
  const blob=new Blob(["\ufeff"+[H.map(q).join(";"),...rows].join("\r\n")],{type:"text/csv;charset=utf-8"});
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="consultores_puulse.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};seg("fTeam",v=>{fT=v;render()});
 document.getElementById("q").oninput=e=>{fQ=e.target.value;render()};

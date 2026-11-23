@@ -180,6 +180,7 @@ textarea.in{min-height:140px;resize:vertical;line-height:1.55}
 [data-theme="light"] .db [style*="#d4d4d4"]{color:#333!important}
 [data-theme="light"] .db [style*="#e6c45c"]{color:#8a6500!important}
 [data-theme="light"] .lerr{color:#c0262d}
+.thread{display:grid;gap:10px}.fbi{border:1px solid var(--line2);border-radius:12px;padding:12px 14px;background:var(--deep)}.fbh{display:flex;gap:10px;align-items:center;margin-bottom:8px}.fbh .av{width:28px;height:28px;flex:0 0 28px;font-size:11px}.fbh b{display:block;font-size:13px}.fbh span{font-size:11.5px;color:var(--dim)}.fbt{font-size:13.5px;line-height:1.55;color:var(--text2)}.fbtags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .fsel{flex:0 0 auto;min-width:180px;max-width:220px;appearance:none;cursor:pointer}
 </style>
 </head>
@@ -281,33 +282,34 @@ async function req(path,opt={}){let t;try{t=await token()}catch(e){showLogin();t
  const r=await fetch(SUPABASE_URL+path,{...opt,headers:{apikey:SUPABASE_ANON_KEY,Authorization:"Bearer "+t,"Content-Type":"application/json",...(opt.headers||{})}});
  const j=await r.json().catch(()=>null);if(r.status===401){saveS(null);showLogin();throw new Error("login")}if(!r.ok)throw new Error((j&&(j.erro||j.message))||"Erro");return j}
 async function api(p,body){
- if(p==="consultores.php"){const [rows,me]=await Promise.all([req("/rest/v1/consultores?select=*&order=enviado_em.desc"),req("/rest/v1/painel_usuarios?select=nome,email")]);
+ if(p==="consultores.php"){const [rows,me,fbs]=await Promise.all([req("/rest/v1/consultores?select=*&order=enviado_em.desc"),req("/rest/v1/painel_usuarios?select=nome,email,time"),req("/rest/v1/feedbacks?select=*&order=criado_em.asc").catch(e=>{if(e.message==="login")throw e;return []})]);
+  const byC={};(fbs||[]).forEach(f=>{(byC[f.consultor_id]=byC[f.consultor_id]||[]).push(f)});(rows||[]).forEach(c=>c.fbs=byC[c.id]||[]);
   const eu=(me||[]).find(u=>u.email.toLowerCase()===String(S.email).toLowerCase());if(!eu){saveS(null);showLogin();document.getElementById("le").textContent="Esse e-mail não tem acesso ao painel.";throw new Error("login")}
-  return {consultores:rows,usuario:{nome:eu.nome},total_esperado:TOTAL_ESPERADO}}
+  return {consultores:rows,usuario:{nome:eu.nome,time:eu.time||""},total_esperado:TOTAL_ESPERADO}}
  if(p==="analisar.php")return req("/functions/v1/avaliar-consultor",{method:"POST",body:JSON.stringify({id:body.id})});
  if(p==="feedback.php"){if(!String(body.feedback||"").trim())throw new Error("Escreve o feedback antes de salvar.");
-  const agora=new Date().toISOString();await req(`/rest/v1/consultores?id=eq.${encodeURIComponent(body.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({feedback_direcao:body.feedback.trim().slice(0,4000),time_definido:body.time_definido,decisao:body.decisao,avaliado_por:ME.nome,avaliado_em:agora,status:"avaliado"})});return {ok:true}}
+  await req("/rest/v1/rpc/adicionar_feedback",{method:"POST",body:JSON.stringify({p_consultor:body.id,p_texto:body.feedback.trim().slice(0,4000),p_time:body.time_definido,p_decisao:body.decisao})});return {ok:true}}
  throw new Error("rota")}
 function showLogin(){document.getElementById("login").classList.remove("off")}
 document.getElementById("lb").onclick=async()=>{const le=document.getElementById("le");le.textContent="";
  try{await auth({email:(v=>v.includes("@")?v:v+"@puulse.pro")(document.getElementById("lu").value.trim().toLowerCase()),password:document.getElementById("lp").value},"password");await load()}catch(e){if(e.message!=="login")le.textContent=e.message==="Invalid login credentials"?"Usuário ou senha incorretos.":e.message}};
 document.getElementById("lp").onkeydown=e=>{if(e.key==="Enter")document.getElementById("lb").click()};
 document.getElementById("sair").onclick=()=>{saveS(null);location.reload()};
-async function load(){const j=await api("consultores.php");C=j.consultores;TOTAL=j.total_esperado;ME=j.usuario;document.getElementById("me").textContent=ME.nome;document.getElementById("login").classList.add("off");render();if(cur){const n=C.find(c=>c.id==cur.id);if(n){cur=n;drawBody()}}}
-function list(){return C.filter(c=>(!fF||(fF==="__sem"?!c.avaliado_por:fF==="__com"?!!c.avaliado_por:c.avaliado_por===fF))&&(fR==="Todas as rodadas"||c.onda===fR)&&(fO==="Todos"||c.unidade===fO)&&(fT==="Todos os times"||tm(c)===fT)&&String(c.nome).toLowerCase().includes(fQ.toLowerCase()))}
+async function load(){const j=await api("consultores.php");C=j.consultores;TOTAL=j.total_esperado;ME=j.usuario;document.getElementById("me").textContent=ME.time?`${ME.nome} · ${ME.time}`:ME.nome;document.getElementById("fTeam").style.display=ME.time?"none":"";document.getElementById("login").classList.add("off");render();if(cur){const n=C.find(c=>c.id==cur.id);if(n){cur=n;drawBody()}}}
+function list(){return C.filter(c=>(!fF||(fF==="__sem"?!nFb(c):fF==="__com"?!!nFb(c):(c.fbs||[]).some(f=>f.autor===fF)))&&(fR==="Todas as rodadas"||c.onda===fR)&&(fO==="Todos"||c.unidade===fO)&&(fT==="Todos os times"||tm(c)===fT)&&String(c.nome).toLowerCase().includes(fQ.toLowerCase()))}
 function seg(id,cb){document.querySelectorAll(`#${id} button`).forEach(b=>b.onclick=()=>{document.querySelectorAll(`#${id} button`).forEach(x=>x.classList.remove("on"));b.classList.add("on");cb(b.textContent,b)})}
 function bars(el,key,L){const m={};L.forEach(c=>arr(R(c)[key]).forEach(v=>m[v]=(m[v]||0)+1));const s=Object.entries(m).sort((a,b)=>b[1]-a[1]).slice(0,5);const mx=s.length?s[0][1]:1;
  document.getElementById(el).innerHTML=s.map(([k,v])=>`<div class="b"><div><span>${esc(k)}</span><span>${v}</span></div><div class="track"><i style="width:${v/mx*100}%"></i></div></div>`).join("")||'<div class="sub">Sem dados ainda</div>'}
 function render(){
  const L=list(),all=fO==="Todos"&&fT==="Todos os times"&&!fQ;
  const k=(l,v,s,p)=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div><div class="s">${s}</div>${p!=null?`<div class="track"><i style="width:${Math.min(100,p)}%"></i></div>`:""}</div>`;
- const an=L.filter(c=>c.analise).length,av=L.filter(c=>!!c.avaliado_por).length,pend=L.filter(c=>!c.analise).length,li=L.filter(c=>R(c).lideranca==="Sim, quero muito").length;
+ const an=L.filter(c=>c.analise).length,av=L.filter(c=>nFb(c)>0).length,pend=L.filter(c=>!c.analise).length,li=L.filter(c=>R(c).lideranca==="Sim, quero muito").length;
  document.getElementById("kpis").innerHTML=k("Cadastros recebidos",`${L.length}`,"consultores que já responderam",null)+k("Analisados pela IA",an,"avaliação prévia pronta",L.length?an/L.length*100:0)+k("Com feedback",`${av}<small> / ${L.length}</small>`,`${L.length?Math.round(av/L.length*100):0}% avaliados`,L.length?av/L.length*100:0)+k("Sem feedback",L.length-av,"aguardando avaliação")+k("1ª rodada",`${L.filter(c=>c.onda==="1ª rodada").length}`,`${brl(L.filter(c=>c.onda==="1ª rodada").reduce((s,c)=>s+valorLogin(c),0))} por mês`);
- document.getElementById("rows").innerHTML=L.length?L.map(c=>{const s=ST[c.status]||ST.novo;return `<tr class="r" data-id="${c.id}"><td><div class="who"><div class="av">${esc(ini(c.nome))}</div><div><b>${esc(c.nome)}</b><small>${esc(c.analise?.perfil||arr(R(c).consorcio_preferido).join(" · "))}</small></div></div></td><td class="hm">${esc(c.unidade)}</td><td class="hm">${esc(tm(c))}</td><td class="hm mono">${esc(R(c).tempo_ademicon)}</td><td>${c.onda&&c.onda!=="Ainda não"?`<span class="tag t-lider">${esc(c.onda)} · ${brl(valorLogin(c))}</span>`:`<span class="tag t-wait">Não definida</span>`}</td><td>${c.avaliado_por?`<span class="tag t-ok" title="${esc(new Date(c.avaliado_em).toLocaleString("pt-BR"))}">✓ ${esc(c.avaliado_por)} · ${esc(new Date(c.avaliado_em).toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit"}))}</span>`:`<span class="tag t-wait">Pendente</span>`}</td></tr>`}).join(""):'<tr><td colspan="6"><div class="empty">Nenhum cadastro nesse recorte ainda.</div></td></tr>';
+ document.getElementById("rows").innerHTML=L.length?L.map(c=>{const s=ST[c.status]||ST.novo;return `<tr class="r" data-id="${c.id}"><td><div class="who"><div class="av">${esc(ini(c.nome))}</div><div><b>${esc(c.nome)}</b><small>${esc(c.analise?.perfil||arr(R(c).consorcio_preferido).join(" · "))}</small></div></div></td><td class="hm">${esc(c.unidade)}</td><td class="hm">${esc(tm(c))}</td><td class="hm mono">${esc(R(c).tempo_ademicon)}</td><td>${c.onda&&c.onda!=="Ainda não"?`<span class="tag t-lider">${esc(c.onda)} · ${brl(valorLogin(c))}</span>`:`<span class="tag t-wait">Não definida</span>`}</td><td>${nFb(c)?`<span class="tag t-ok" title="Último: ${esc(ultFb(c).autor)} em ${esc(new Date(ultFb(c).criado_em).toLocaleString("pt-BR"))}">✓ ${nFb(c)} · ${esc([...new Set(c.fbs.map(f=>f.autor))].join(", "))}</span>`:`<span class="tag t-wait">Pendente</span>`}</td></tr>`}).join(""):'<tr><td colspan="6"><div class="empty">Nenhum cadastro nesse recorte ainda.</div></td></tr>';
  document.querySelectorAll("tr.r").forEach(r=>r.onclick=()=>open(C.find(c=>c.id==r.dataset.id)));
- {const m={};L.forEach(c=>{if(c.avaliado_por)m[c.avaliado_por]=(m[c.avaliado_por]||0)+1});const s=Object.entries(m).sort((a,b)=>b[1]-a[1]);const mx=Math.max(1,...s.map(x=>x[1]));
+ {const m={};L.forEach(c=>(c.fbs||[]).forEach(f=>m[f.autor]=(m[f.autor]||0)+1));const s=Object.entries(m).sort((a,b)=>b[1]-a[1]);const mx=Math.max(1,...s.map(x=>x[1]));
   document.getElementById("barsAv").innerHTML=(s.map(([k,v])=>`<div class="b"><div><span>${esc(k)}</span><span>${v}</span></div><div class="track"><i style="width:${v/mx*100}%"></i></div></div>`).join("")||'<div class="sub">Nenhum feedback ainda</div>')+`<div class="fbmeta">${L.length-av} sem feedback nesse recorte</div>`;
-  const sel=document.getElementById("fFb"),cur=sel.value,nomes=[...new Set(C.map(c=>c.avaliado_por).filter(Boolean))].sort();
+  const sel=document.getElementById("fFb"),cur=sel.value,nomes=[...new Set(C.flatMap(c=>(c.fbs||[]).map(f=>f.autor)))].sort();
   sel.innerHTML='<option value="">Feedback: todos</option><option value="__sem">Sem feedback</option><option value="__com">Com feedback</option>'+nomes.map(n=>`<option value="${esc(n)}">Feito por ${esc(n)}</option>`).join("");sel.value=cur;}
  bars("bars","quer_evoluir",L);bars("bars2","consorcio_preferido",L);
  if(!L.length){document.getElementById("read").innerHTML="<p>Assim que os consultores responderem, a leitura do escritório aparece aqui.</p>";return}
@@ -369,6 +371,7 @@ function resumoAuto(c){const r=R(c),nome=(r.apelido&&!/não tenho/i.test(r.apeli
  ${dest.length?`<div class="sec"><h4>Destaques do cadastro</h4><div class="box">${ul(dest)}</div></div>`:""}
  ${pessoal.length?`<div class="sec"><h4>Lado pessoal</h4><div class="box"><div class="bt">${pessoal.join(" · ")}</div></div></div>`:""}
  <div class="fbmeta">${c.analise_erro?"A análise completa da IA ainda não rodou. ":""}Resumo automático montado a partir das respostas, sem avaliação. Quando a IA estiver liberada, clique em <b>Refazer análise da IA</b> pra gerar a avaliação técnica e o perfil comportamental.</div>`}
+const nFb=c=>(c.fbs||[]).length;const ultFb=c=>(c.fbs||[])[nFb(c)-1];
 const ul=a=>`<ul>${arr(a).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`;
 function drawBody(){const c=cur,db=document.getElementById("db"),a=c.analise;
  if(tab==="ia"){
@@ -387,21 +390,22 @@ function drawBody(){const c=cur,db=document.getElementById("db"),a=c.analise;
  }else{
   const ts=["Bruno Martini","André","Cerruti","Ricardo/Thiago Escritórios","Sávio/Jaraguá do Sul"],sel=c.time_definido||(a&&a.time_sugerido)||tm(c);
   db.innerHTML=`<div class="sec"><h4>Liberação do login</h4><div class="seg" id="fbOnda">${ONDAS.map(o=>`<button class="${(c.onda||"")===o?"on":""}">${o}</button>`).join("")}</div><div class="fbmeta">Valor do login: <b style="color:var(--ink)">${brl(valorLogin(c))}</b> por mês, pelo tempo de Ademicon. Salva na hora.</div></div>
-   ${c.avaliado_por&&ME&&c.avaliado_por!==ME.nome?`<div class="sec"><div class="box" style="border-color:rgba(217,164,0,.4)"><b>Feedback já dado por ${esc(c.avaliado_por)}</b><div class="bt">Em ${esc(new Date(c.avaliado_em).toLocaleString("pt-BR"))}. Se você salvar, o seu substitui o dele.</div></div></div>`:""}<div class="sec"><h4>Seu feedback sobre ${esc(String(c.nome).split(" ")[0])}</h4>
-   <textarea class="in" id="fbTxt" placeholder="O que você enxerga nesse consultor, onde concorda ou discorda da IA, e como quer direcionar.">${esc(c.feedback_direcao||"")}</textarea></div>
+   <div class="sec"><h4>Feedbacks (${nFb(c)})</h4>${nFb(c)?`<div class="thread">${c.fbs.map(f=>`<div class="fbi"><div class="fbh"><div class="av">${esc(ini(f.autor))}</div><div><b>${esc(f.autor)}</b><span>${esc(new Date(f.criado_em).toLocaleString("pt-BR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}))}</span></div></div><div class="fbt">${esc(f.texto).replace(/\n/g,"<br>")}</div>${f.time_definido||f.decisao?`<div class="fbtags">${f.time_definido?`<span class="tag">Time ${esc(f.time_definido)}</span>`:""}${f.decisao?`<span class="tag ${f.decisao==="ajustar"?"t-lider":"t-ok"}">${f.decisao==="ajustar"?"Precisa de ajuste":"Perfil aprovado"}</span>`:""}</div>`:""}</div>`).join("")}</div>`:`<div class="box"><div class="bt">Ninguém deu feedback sobre ${esc(String(c.nome).split(" ")[0])} ainda. Seja o primeiro.</div></div>`}</div>
+   <div class="sec"><h4>Adicionar seu feedback</h4>
+   <textarea class="in" id="fbTxt" placeholder="O que você enxerga nesse consultor, onde concorda ou discorda da IA, e como quer direcionar."></textarea><div class="fbmeta">Todos que acompanham esse consultor veem os feedbacks. Nenhum feedback é apagado ou substituído.</div></div>
    <div class="sec"><h4>Time definido</h4><div class="seg" id="fbTime">${ts.map(t=>`<button class="${t===sel?"on":""}">${t}</button>`).join("")}</div></div>
    <div class="sec"><h4>Decisão</h4><div class="seg" id="fbDec"><button class="${c.decisao!=="ajustar"?"on":""}" data-v="aprovado">Aprovar perfil</button><button class="${c.decisao==="ajustar"?"on":""}" data-v="ajustar">Precisa de ajuste</button></div></div>
-   <button class="pillbtn metal" id="fbSave" style="width:100%;justify-content:center;padding:13px">Salvar feedback</button>
-   ${c.avaliado_por?`<div class="fbmeta">Último feedback por ${esc(c.avaliado_por)} em ${esc(new Date(c.avaliado_em).toLocaleString("pt-BR"))}</div>`:""}`;
+   <button class="pillbtn metal" id="fbSave" style="width:100%;justify-content:center;padding:13px">Adicionar feedback</button>
+   `;
   seg("fbTime",()=>{});seg("fbDec",()=>{});
   seg("fbOnda",async v=>{try{await req(`/rest/v1/consultores?id=eq.${encodeURIComponent(c.id)}`,{method:"PATCH",headers:{Prefer:"return=minimal"},body:JSON.stringify({onda:v})});c.onda=v;render();toast("Rodada salva: "+v)}catch(e){if(e.message!=="login")toast(e.message)}});
   document.getElementById("fbSave").onclick=async()=>{const b=document.getElementById("fbSave");b.disabled=true;
-   try{await api("feedback.php",{id:c.id,feedback:document.getElementById("fbTxt").value,time_definido:document.querySelector("#fbTime .on")?.textContent||"",decisao:document.querySelector("#fbDec .on")?.dataset.v||"aprovado"});toast("Feedback salvo");await load();setTab("fb")}catch(e){if(e.message!=="login")toast(e.message)}b.disabled=false};
+   try{await api("feedback.php",{id:c.id,feedback:document.getElementById("fbTxt").value,time_definido:document.querySelector("#fbTime .on")?.textContent||"",decisao:document.querySelector("#fbDec .on")?.dataset.v||"aprovado"});toast("Feedback adicionado");await load();setTab("fb")}catch(e){if(e.message!=="login")toast(e.message)}b.disabled=false};
  }}
 seg("fOffice",v=>{fO=v;render()});document.getElementById("fFb").onchange=e=>{fF=e.target.value;render()};seg("fRod",v=>{fR=v;render()});
-document.getElementById("exp").onclick=()=>{const L=list();const H=["Nome","Escritório","Time","Função","Tempo de Ademicon","WhatsApp","E-mail","Rodada","Valor mensal","Status","Time definido","Feedback da direção","Feedback feito por","Data do feedback"];
+document.getElementById("exp").onclick=()=>{const L=list();const H=["Nome","Escritório","Time","Função","Tempo de Ademicon","WhatsApp","E-mail","Rodada","Valor mensal","Status","Time definido","Qtd. feedbacks","Feito por","Feedbacks (todos)"];
  const q=v=>`"${String(v??"").replace(/"/g,'""')}"`;
- const rows=L.map(c=>[c.nome,c.unidade,tm(c),R(c).cargo,R(c).tempo_ademicon,R(c).whatsapp,R(c).email,c.onda||"",c.onda&&c.onda!=="Ainda não"?valorLogin(c):"",(ST[c.status]||ST.novo)[0],c.time_definido||"",c.feedback_direcao||"",c.avaliado_por||"",c.avaliado_em?new Date(c.avaliado_em).toLocaleString("pt-BR"):""].map(q).join(";"));
+ const rows=L.map(c=>[c.nome,c.unidade,tm(c),R(c).cargo,R(c).tempo_ademicon,R(c).whatsapp,R(c).email,c.onda||"",c.onda&&c.onda!=="Ainda não"?valorLogin(c):"",(ST[c.status]||ST.novo)[0],c.time_definido||"",nFb(c),[...new Set((c.fbs||[]).map(f=>f.autor))].join(", "),(c.fbs||[]).map(f=>`[${new Date(f.criado_em).toLocaleDateString("pt-BR")}] ${f.autor}: ${f.texto}`).join(" | ")].map(q).join(";"));
  const blob=new Blob(["\ufeff"+[H.map(q).join(";"),...rows].join("\r\n")],{type:"text/csv;charset=utf-8"});
  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="consultores_puulse.csv";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000)};seg("fTeam",v=>{fT=v;render()});
 document.getElementById("q").oninput=e=>{fQ=e.target.value;render()};
